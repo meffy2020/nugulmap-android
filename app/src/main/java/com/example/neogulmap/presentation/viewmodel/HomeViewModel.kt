@@ -12,6 +12,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
+import android.util.Log // Add import
+
+@HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getZonesUseCase: GetZonesUseCase
 ) : ViewModel() {
@@ -19,29 +22,36 @@ class HomeViewModel @Inject constructor(
     private val _zones = MutableStateFlow<List<Zone>>(emptyList())
     val zones: StateFlow<List<Zone>> = _zones.asStateFlow()
     
-    private val _isLoading = MutableStateFlow(true)
+    private val _isLoading = MutableStateFlow(false) // Changed to false
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
     
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
     init {
+        Log.d("HomeViewModel", "init called, loading zones.")
         loadZones()
     }
 
     fun loadZones() {
         viewModelScope.launch {
+            Log.d("HomeViewModel", "loadZones started.")
             _isLoading.value = true
             _errorMessage.value = null
             getZonesUseCase().collect { result ->
+                Log.d("HomeViewModel", "Collecting result: $result")
                 result.onSuccess { zoneList ->
+                    Log.d("HomeViewModel", "Zones loaded successfully: ${zoneList.size} zones")
                     _zones.value = zoneList
-                    _isLoading.value = false // Set isLoading to false on success
+                    _isLoading.value = false
                 }.onFailure { e ->
-                    _errorMessage.value = "Failed to load zones: ${e.message}"
-                    _isLoading.value = false // Set isLoading to false on failure
+                    val msg = "Failed to load zones: ${e.message}"
+                    Log.e("HomeViewModel", msg, e)
+                    _errorMessage.value = msg
+                    _isLoading.value = false
                 }
             }
+            Log.d("HomeViewModel", "loadZones finished collecting.") // This might not be reached if collect is continuous
         }
     }
 }

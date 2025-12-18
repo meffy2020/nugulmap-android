@@ -112,11 +112,13 @@ fun HomeScreen(
         }
         */
         
+        /*
         if (isLoading) {
              Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                  CircularProgressIndicator()
              }
         }
+        */
         
         errorMessage?.let { msg ->
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

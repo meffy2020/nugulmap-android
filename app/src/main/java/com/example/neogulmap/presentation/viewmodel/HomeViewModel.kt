@@ -33,18 +33,14 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
-            try {
-                val result = getZonesUseCase()
+            getZonesUseCase().collect { result ->
                 result.onSuccess { zoneList ->
                     _zones.value = zoneList
+                    _isLoading.value = false // Set isLoading to false on success
                 }.onFailure { e ->
                     _errorMessage.value = "Failed to load zones: ${e.message}"
+                    _isLoading.value = false // Set isLoading to false on failure
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _errorMessage.value = "Failed to load zones: ${e.message}"
-            } finally {
-                _isLoading.value = false
             }
         }
     }

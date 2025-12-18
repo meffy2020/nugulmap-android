@@ -12,7 +12,7 @@ interface ZoneRepository {
      * @param radius The radius in meters.
      * @return A Result wrapper containing the list of Zones on success, or an exception on failure.
      */
-    suspend fun getZonesByRadius(latitude: Double, longitude: Double, radius: Int): Result<List<Zone>>
+    suspend fun getZonesByRadius(latitude: Double, longitude: Double, radius: Int): Flow<Result<List<Zone>>>
 
     /**
      * Creates a new smoking zone on the remote server.

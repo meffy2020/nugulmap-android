@@ -16,7 +16,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.emitAll
 
 class ZoneRepositoryImpl @Inject constructor(
     private val api: NugulApi,
@@ -41,52 +41,51 @@ class ZoneRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun getZonesByRadius(latitude: Double, longitude: Double, radius: Int): Flow<Result<List<Zone>>> {
-        return zoneDao.getAllZones()
-            .map { entities -> Result.success(entities.map { it.toDomain() }) }
-            .onStart {
-                // Try to fetch from network when the flow starts collecting
-                try {
-                    val apiResponse = api.getAllZonesList()
+    override suspend fun getZonesByRadius(latitude: Double, longitude: Double, radius: Int): Flow<Result<List<Zone>>> = flow {
+        // 1. Emit cached data immediately to show something on UI
+        val cachedEntities = zoneDao.getAllZones().first()
+        val cachedData = cachedEntities.map { it.toDomain() }
+        if (cachedData.isNotEmpty()) {
+            emit(Result.success(cachedData))
+        }
 
-                    if (apiResponse.success && apiResponse.data != null) {
-                        val dtoList = apiResponse.data.zones
-                            ?: apiResponse.data.content
-                            ?: apiResponse.data.zoneList
-                            ?: apiResponse.data.list
-                            ?: apiResponse.data.data
-                            ?: apiResponse.data.result
-                            ?: emptyList()
+        // 2. Fetch from network and update DB
+        try {
+            val apiResponse = api.getAllZonesList()
 
-                        val domainList = dtoList.map { mapToDomain(it) }
+            if (apiResponse.success && apiResponse.data != null) {
+                val dtoList = apiResponse.data.zones
+                    ?: apiResponse.data.content
+                    ?: apiResponse.data.zoneList
+                    ?: apiResponse.data.list
+                    ?: apiResponse.data.data
+                    ?: apiResponse.data.result
+                    ?: emptyList()
 
-                        // Update local DB. This will trigger the flow above to emit new data.
-                        withContext(Dispatchers.IO) {
-                            zoneDao.deleteAll()
-                            zoneDao.insertAll(domainList.map { it.toEntity() })
-                        }
-                    } else {
-                        // API failure. If cache is empty, we might want to signal an error.
-                        // However, onStart can only emit to the downstream.
-                        // We check if DB is empty to emit a failure signal if needed.
-                        if (zoneDao.getAllZones().first().isEmpty()) {
-                             val errorMessage = apiResponse.message ?: "Unknown API error"
-                             emit(Result.failure(Exception(errorMessage)))
-                        }
-                    }
-                } catch (e: Exception) {
-                    // Network error. If cache is empty, emit failure.
-                    // If cache exists, the user sees cached data, and we just log the error.
-                    if (zoneDao.getAllZones().first().isEmpty()) {
-                        emit(Result.failure(Exception("Network error: ${e.message}")))
-                    } else {
-                        e.printStackTrace()
-                    }
+                val domainList = dtoList.map { mapToDomain(it) }
+
+                withContext(Dispatchers.IO) {
+                    zoneDao.deleteAll()
+                    zoneDao.insertAll(domainList.map { it.toEntity() })
+                }
+            } else {
+                val errorMessage = apiResponse.message ?: "Unknown API error"
+                if (cachedData.isEmpty()) {
+                    emit(Result.failure(Exception(errorMessage)))
                 }
             }
-            .catch { e ->
-                emit(Result.failure(e))
+        } catch (e: Exception) {
+            if (cachedData.isEmpty()) {
+                emit(Result.failure(Exception("Network error: ${e.message}")))
+            } else {
+                e.printStackTrace()
             }
+        }
+
+        // 3. Emit all subsequent changes from the DB
+        emitAll(zoneDao.getAllZones().map { entities -> 
+            Result.success(entities.map { it.toDomain() }) 
+        })
     }
 
     override suspend fun createZone(

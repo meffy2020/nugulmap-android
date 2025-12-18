@@ -15,7 +15,7 @@ data class ZoneDto(
     val user: String? = null, // UserId or Name
     val image: String? = null, // Filename
     
-    // Compatibility fields for DevB (optional)
+    // Compatibility fields for DevB
     val name: String? = null,
     val imageUrl: String? = null
 )
@@ -35,6 +35,8 @@ fun ZoneDto.toDomain(): Zone {
         size = this.size,
         address = this.address,
         user = this.user,
-        image = this.image
+        image = this.image,
+        name = this.name, // Pass name from dto
+        imageUrl = this.imageUrl // Pass imageUrl from dto
     )
 }

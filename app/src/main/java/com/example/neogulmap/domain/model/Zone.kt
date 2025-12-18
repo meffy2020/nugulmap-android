@@ -11,5 +11,7 @@ data class Zone(
     val size: String?,
     val address: String?,
     val user: String?,
-    val image: String?
+    val image: String?,
+    val name: String?, // Added for compatibility
+    val imageUrl: String? // Added for compatibility
 )

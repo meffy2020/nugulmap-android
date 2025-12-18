@@ -1,21 +1,26 @@
 package com.example.neogulmap.data.repository
 
 import com.example.neogulmap.data.api.NugulApi
+import com.example.neogulmap.data.local.ZoneDao
+import com.example.neogulmap.data.local.toDomain
+import com.example.neogulmap.data.local.toEntity
 import com.example.neogulmap.domain.model.Zone
 import com.example.neogulmap.domain.repository.ZoneRepository
+import kotlinx.coroutines.flow.first
 import java.io.File
 import javax.inject.Inject
 
 class ZoneRepositoryImpl @Inject constructor(
-    private val api: NugulApi
+    private val api: NugulApi,
+    private val zoneDao: ZoneDao // Inject ZoneDao
 ) : ZoneRepository {
 
-    // Helper to map DTO to Domain
+    // Helper to map DTO to Domain (remains the same)
     private fun mapToDomain(dto: com.example.neogulmap.data.model.ZoneDto): Zone {
         return Zone(
             id = dto.id,
-            region = dto.region ?: "",
-            type = dto.type ?: "",
+            region = dto.region ?: "Unknown Region",
+            type = dto.type ?: "Unknown Type",
             subtype = dto.subtype,
             description = dto.description,
             latitude = dto.latitude,
@@ -23,31 +28,51 @@ class ZoneRepositoryImpl @Inject constructor(
             size = dto.size,
             address = dto.address,
             user = dto.user,
-            image = dto.image
+            image = dto.image,
+            name = dto.name,
+            imageUrl = dto.imageUrl
         )
     }
 
     override suspend fun getZonesByRadius(latitude: Double, longitude: Double, radius: Int): Result<List<Zone>> {
         return try {
-            val response = api.getAllZonesList()
-            if (response.success && response.data != null) {
-                val list = response.data.zones 
-                    ?: response.data.content 
-                    ?: response.data.zoneList
-                    ?: response.data.list
-                    ?: response.data.items
-                    ?: response.data.data
-                    ?: response.data.result
+            // Try to fetch from network
+            val apiResponse = api.getAllZonesList()
+            
+            if (apiResponse.success && apiResponse.data != null) {
+                val dtoList = apiResponse.data.zones 
+                    ?: apiResponse.data.content 
+                    ?: apiResponse.data.zoneList
+                    ?: apiResponse.data.list
+                    ?: apiResponse.data.items
+                    ?: apiResponse.data.data
+                    ?: apiResponse.data.result
                     ?: emptyList()
                 
-                val domainList = list.map { mapToDomain(it) }
-                // TODO: Filter by radius here if needed, or assume server handles it (currently getting all)
+                val domainList = dtoList.map { mapToDomain(it) }
+                
+                // Save to local DB
+                zoneDao.deleteAll() // Clear old data
+                zoneDao.insertAll(domainList.map { it.toEntity() })
+                
                 Result.success(domainList)
             } else {
-                Result.failure(Exception(response.message ?: "Unknown server error"))
+                // Network call was successful but API returned failure
+                val localData = zoneDao.getAllZones().first().map { it.toDomain() }
+                if (localData.isNotEmpty()) {
+                    Result.success(localData) // Return cached data
+                } else {
+                    Result.failure(Exception(apiResponse.message ?: "Unknown API error and no local data"))
+                }
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            // Network call failed, try to get from local DB
+            val localData = zoneDao.getAllZones().first().map { it.toDomain() }
+            if (localData.isNotEmpty()) {
+                Result.success(localData) // Return cached data
+            } else {
+                Result.failure(Exception("Network error: ${e.message} and no local data"))
+            }
         }
     }
 

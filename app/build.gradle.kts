@@ -107,6 +107,11 @@ dependencies {
     implementation(libs.kakao.map)
     implementation(libs.kakao.sdk.user)
 
+    // Room (SQLite)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
     // Google Credential Manager & Location
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation(libs.play.services.location)

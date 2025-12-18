@@ -1,6 +1,7 @@
 package com.example.neogulmap.domain.repository
 
 import com.example.neogulmap.domain.model.Zone
+import kotlinx.coroutines.flow.Flow
 import java.io.File
 
 interface ZoneRepository {

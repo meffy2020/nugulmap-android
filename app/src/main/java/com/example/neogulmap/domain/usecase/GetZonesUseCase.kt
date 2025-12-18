@@ -2,6 +2,7 @@ package com.example.neogulmap.domain.usecase
 
 import com.example.neogulmap.domain.model.Zone
 import com.example.neogulmap.domain.repository.ZoneRepository
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class GetZonesUseCase @Inject constructor(

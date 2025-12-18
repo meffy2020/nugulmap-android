@@ -27,7 +27,8 @@ fun NavGraph(navController: NavHostController) {
                         ProfileMenuItem.ANNOUNCEMENTS -> navController.navigate(Announcements.route) // Navigate to Announcements Screen
                         ProfileMenuItem.LOGOUT -> Log.d("NavGraph", "Logout clicked") // TODO: Implement Logout logic
                     }
-                }
+                },
+                onReportClick = { navController.navigate(Report.route) } // Navigate to ReportScreen
             )
         }
         composable(Login.route) {
@@ -71,7 +72,7 @@ fun NavGraph(navController: NavHostController) {
             )
         }
         composable(Report.route) { // Add new composable for ReportScreen
-            ReportScreen()
+            ReportScreen(onReportSuccess = { navController.popBackStack() })
         }
     }
 }

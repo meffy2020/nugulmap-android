@@ -59,7 +59,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
-    onMenuItemClick: (ProfileMenuItem) -> Unit // Changed from onProfileClick
+    onMenuItemClick: (ProfileMenuItem) -> Unit,
+    onReportClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val currentLocation by viewModel.currentLocation.collectAsState()
@@ -86,7 +87,6 @@ fun HomeScreen(
     }
 
     var selectedZone by remember { mutableStateOf<Zone?>(null) }
-    var showAddLocationModal by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
@@ -170,7 +170,7 @@ fun HomeScreen(
 
                     // Floating Action Button for adding new locations
                     FloatingActionButton(
-                        onClick = { showAddLocationModal = true },
+                        onClick = { onReportClick() },
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
                             .navigationBarsPadding()
@@ -218,17 +218,6 @@ fun HomeScreen(
                         }
                     }
                 }
-            }
-            
-            // Add Location Modal
-            if (showAddLocationModal) {
-                AddLocationModal(
-                    onDismiss = { showAddLocationModal = false },
-                    onLocationAdded = {
-                        showAddLocationModal = false
-                        viewModel.loadZones(latitude = 37.5665, longitude = 126.9780)
-                    }
-                )
             }
         }
     }

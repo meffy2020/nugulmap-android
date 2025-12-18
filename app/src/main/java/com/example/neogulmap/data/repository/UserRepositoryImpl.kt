@@ -1,7 +1,7 @@
 package com.example.neogulmap.data.repository
 
 import com.example.neogulmap.data.api.NugulApi
-import com.example.neogulmap.data.api.UserRequest
+import com.example.neogulmap.data.model.UserRequest
 import com.example.neogulmap.domain.repository.UserRepository
 import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaTypeOrNull

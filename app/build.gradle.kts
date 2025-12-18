@@ -27,22 +27,22 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
-        val baseUrl = localProperties.getProperty("BASE_URL") ?: "http://10.0.2.2:8080"
-        val kakaoKey = localProperties.getProperty("KAKAO_NATIVE_APP_KEY") ?: ""
+        val baseUrl = (localProperties.getProperty("BASE_URL") ?: "http://10.0.2.2:8080").replace("\"", "")
+        val kakaoKey = (localProperties.getProperty("KAKAO_NATIVE_APP_KEY") ?: "").replace("\"", "")
         
-        buildConfigField("String", "BASE_URL", baseUrl)
-        buildConfigField("String", "KAKAO_NATIVE_APP_KEY", "$kakaoKey")
+        buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
+        buildConfigField("String", "KAKAO_NATIVE_APP_KEY", "\"$kakaoKey\"")
         
         // Social Login Configs (from DevB)
-        val googleWebClientId = localProperties.getProperty("GOOGLE_WEB_CLIENT_ID") ?: ""
-        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "$googleWebClientId")
+        val googleWebClientId = (localProperties.getProperty("GOOGLE_WEB_CLIENT_ID") ?: "").replace("\"", "")
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
 
-        val naverClientId = localProperties.getProperty("NAVER_CLIENT_ID") ?: ""
-        val naverClientSecret = localProperties.getProperty("NAVER_CLIENT_SECRET") ?: ""
-        val naverClientName = localProperties.getProperty("NAVER_CLIENT_NAME") ?: ""
-        buildConfigField("String", "NAVER_CLIENT_ID", "$naverClientId")
-        buildConfigField("String", "NAVER_CLIENT_SECRET", "$naverClientSecret")
-        buildConfigField("String", "NAVER_CLIENT_NAME", "$naverClientName")
+        val naverClientId = (localProperties.getProperty("NAVER_CLIENT_ID") ?: "").replace("\"", "")
+        val naverClientSecret = (localProperties.getProperty("NAVER_CLIENT_SECRET") ?: "").replace("\"", "")
+        val naverClientName = (localProperties.getProperty("NAVER_CLIENT_NAME") ?: "").replace("\"", "")
+        buildConfigField("String", "NAVER_CLIENT_ID", "\"$naverClientId\"")
+        buildConfigField("String", "NAVER_CLIENT_SECRET", "\"$naverClientSecret\"")
+        buildConfigField("String", "NAVER_CLIENT_NAME", "\"$naverClientName\"")
         
         manifestPlaceholders["KAKAO_NATIVE_APP_KEY"] = kakaoKey
         manifestPlaceholders["NAVER_CLIENT_ID"] = naverClientId

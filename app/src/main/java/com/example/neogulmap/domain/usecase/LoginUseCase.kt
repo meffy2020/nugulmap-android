@@ -1,6 +1,6 @@
 package com.example.neogulmap.domain.usecase
 
-import com.example.neogulmap.data.api.UserRequest
+import com.example.neogulmap.data.model.UserRequest
 import com.example.neogulmap.domain.repository.UserRepository
 import javax.inject.Inject
 

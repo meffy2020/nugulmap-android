@@ -1,6 +1,6 @@
 package com.example.neogulmap.domain.repository
 
-import com.example.neogulmap.data.api.UserRequest
+import com.example.neogulmap.data.model.UserRequest
 import java.io.File
 
 interface UserRepository {

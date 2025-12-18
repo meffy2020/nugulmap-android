@@ -1,20 +1,23 @@
 package com.example.neogulmap.data.model
 
-import com.example.neogulmap.BuildConfig
 import com.example.neogulmap.domain.model.Zone
 
 data class ZoneDto(
     val id: Long,
-    val region: String,
-    val type: String, // Outdoor, Booth, etc.
-    val subtype: String?,
-    val description: String?,
+    val region: String? = null,
+    val type: String? = null, // Outdoor, Booth, etc.
+    val subtype: String? = null,
+    val description: String? = null,
     val latitude: Double,
     val longitude: Double,
-    val size: String?,
-    val address: String?,
-    val user: String?, // UserId or Name
-    val image: String? // Filename
+    val size: String? = null,
+    val address: String? = null,
+    val user: String? = null, // UserId or Name
+    val image: String? = null, // Filename
+    
+    // Compatibility fields for DevB (optional)
+    val name: String? = null,
+    val imageUrl: String? = null
 )
 
 /**
@@ -23,14 +26,15 @@ data class ZoneDto(
 fun ZoneDto.toDomain(): Zone {
     return Zone(
         id = this.id,
-        name = this.description ?: this.address ?: "흡연 구역",
+        region = this.region ?: "Unknown Region",
+        type = this.type ?: "Unknown Type",
+        subtype = this.subtype,
         description = this.description,
         latitude = this.latitude,
         longitude = this.longitude,
-        imageUrl = this.image?.let { "${BuildConfig.BASE_URL}/images/$it" },
+        size = this.size,
         address = this.address,
-        type = this.type,
-        size = this.size
+        user = this.user,
+        image = this.image
     )
 }
-

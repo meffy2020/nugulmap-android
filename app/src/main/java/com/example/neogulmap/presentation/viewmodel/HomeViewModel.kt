@@ -9,7 +9,7 @@ import com.example.neogulmap.domain.model.Zone
 import com.example.neogulmap.domain.usecase.GetZonesUseCase
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.model.LatLng
+import com.kakao.vectormap.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -59,7 +59,7 @@ class HomeViewModel @Inject constructor(
     fun moveToCurrentLocation() {
         fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
             location?.let {
-                _currentLocation.value = LatLng(it.latitude, it.longitude)
+                _currentLocation.value = LatLng.from(it.latitude, it.longitude)
                 // Optionally reload zones around the current location
                 loadZones(it.latitude, it.longitude)
             } ?: run {

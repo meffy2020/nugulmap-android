@@ -183,7 +183,7 @@ class AddLocationViewModel @Inject constructor(
 
                     if (!addresses.isNullOrEmpty()) {
                         val address = addresses[0]
-                        val fullAddress = address.getAddressLine(0) ?: "${location.latitude}, ${location.longitude}"
+                        val fullAddress = address.getAddressLine(0) ?: "알 수 없는 주소"
                         val region = address.adminArea ?: "" // State/Province
                         
                         _formState.update { currentState ->
@@ -196,10 +196,24 @@ class AddLocationViewModel @Inject constructor(
                             )
                         }
                     } else {
-                        _formState.update { it.copy(error = "현재 위치의 주소를 찾을 수 없습니다.") }
+                        // Fallback to "한국성서대학교" if reverse geocoding fails
+                        _formState.update { it.copy(
+                            latitude = 37.6169,
+                            longitude = 127.0694,
+                            address = "서울특별시 노원구 동일로 113길 77 (한국성서대학교)",
+                            region = "서울특별시 노원구",
+                            error = "현재 위치의 주소를 찾을 수 없어 기본 위치로 설정됩니다."
+                        ) }
                     }
                 } else {
-                    _formState.update { it.copy(error = "현재 위치를 가져올 수 없습니다.") }
+                    // Fallback to "한국성서대학교" if location is null
+                    _formState.update { it.copy(
+                        latitude = 37.6169,
+                        longitude = 127.0694,
+                        address = "서울특별시 노원구 동일로 113길 77 (한국성서대학교)",
+                        region = "서울특별시 노원구",
+                        error = "현재 위치를 가져올 수 없어 기본 위치로 설정됩니다."
+                    ) }
                 }
             } catch (e: SecurityException) {
                 val errorMessage = "위치 권한이 필요합니다."

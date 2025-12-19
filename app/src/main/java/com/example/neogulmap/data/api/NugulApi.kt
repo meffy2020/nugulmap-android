@@ -28,7 +28,13 @@ interface NugulApi {
     suspend fun getLoginUrls(): ApiResponse<LoginUrlsData>
 
     @Multipart
-    @POST("zones") // Assuming this is the endpoint for creating zones
+    @POST("users")
+    suspend fun createUser(
+        @Part("userData") userData: RequestBody,
+        @Part profileImage: MultipartBody.Part?
+    ): ApiResponse<Unit> // Assuming Unit or UserDto return
+    @Multipart
+    @POST("zones") // Assuming this is the correct endpoint for creating zones
     suspend fun createZone(
         @Part("zoneData") zoneData: RequestBody, // Zone data in JSON format
         @Part imageFile: MultipartBody.Part? // Optional image file

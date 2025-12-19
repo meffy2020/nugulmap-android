@@ -115,6 +115,7 @@ dependencies {
     // Google Credential Manager & Location
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation(libs.play.services.location)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

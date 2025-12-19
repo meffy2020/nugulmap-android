@@ -20,6 +20,7 @@ kakaoSdk = "2.20.1"
 playServicesLocation = "21.0.1"
 iconsExtended = "1.6.8"
 room = "2.6.1"
+kotlinxCoroutinesPlayServices = "1.7.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -64,6 +65,7 @@ androidx-datastore-preferences = { group = "androidx.datastore", name = "datasto
 kakao-map = { group = "com.kakao.maps.open", name = "android", version.ref = "kakaoMap" }
 kakao-sdk-user = { group = "com.kakao.sdk", name = "v2-user", version.ref = "kakaoSdk" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutinesPlayServices" }
 
 # Room (SQLite)
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }

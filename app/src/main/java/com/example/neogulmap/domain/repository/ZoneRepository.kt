@@ -3,6 +3,7 @@ package com.example.neogulmap.domain.repository
 import com.example.neogulmap.domain.model.Zone
 import kotlinx.coroutines.flow.Flow
 import java.io.File
+import android.net.Uri // Import Uri
 
 interface ZoneRepository {
     /**
@@ -30,7 +31,7 @@ interface ZoneRepository {
         name: String,
         address: String,
         type: String,
-        userId: String, // Assuming userId is part of the zone creation
-        imageUri: android.net.Uri? // Use Uri for image file
+        userId: String,
+        imageUri: Uri?
     ): Result<Zone>
 }

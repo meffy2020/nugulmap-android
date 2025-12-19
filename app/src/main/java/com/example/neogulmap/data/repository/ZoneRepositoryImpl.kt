@@ -1,28 +1,26 @@
+package com.example.neogulmap.data.repository
+
+import android.content.Context
+import android.net.Uri
 import com.example.neogulmap.data.api.NugulApi
 import com.example.neogulmap.data.local.ZoneDao
 import com.example.neogulmap.data.local.toDomain
 import com.example.neogulmap.data.local.toEntity
+import com.example.neogulmap.data.model.ZoneDto
 import com.example.neogulmap.domain.model.Zone
 import com.example.neogulmap.domain.repository.ZoneRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
+import com.google.gson.Gson
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.io.File
-import javax.inject.Inject
-
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
-import com.google.gson.Gson
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import android.content.Context
-import android.net.Uri
-import com.example.neogulmap.data.model.ZoneDto // Import ZoneDto
-import dagger.hilt.android.qualifiers.ApplicationContext // Import ApplicationContext
+import java.io.File
+import javax.inject.Inject
 
 class ZoneRepositoryImpl @Inject constructor(
     private val api: NugulApi,
@@ -31,7 +29,7 @@ class ZoneRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context // Inject Context for URI handling
 ) : ZoneRepository {
 
-    private fun mapToDomain(dto: com.example.neogulmap.data.model.ZoneDto): Zone {
+    private fun mapToDomain(dto: ZoneDto): Zone {
         return Zone(
             id = dto.id,
             region = dto.region ?: "Unknown Region",
@@ -59,7 +57,6 @@ class ZoneRepositoryImpl @Inject constructor(
                     val dtoList = apiResponse.data.zones
                         ?: apiResponse.data.content
                         ?: apiResponse.data.zoneList
-                        ?: apiResponse.data.list
                         ?: apiResponse.data.data
                         ?: apiResponse.data.result
                         ?: emptyList()

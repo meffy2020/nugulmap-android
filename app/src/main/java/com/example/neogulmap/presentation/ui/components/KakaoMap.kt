@@ -49,7 +49,7 @@ fun KakaoMap(
     LaunchedEffect(mapInstance) {
         mapInstance?.let { map ->
             val targetLatLng = LatLng.from(currentLocation.first, currentLocation.second)
-            val cameraPosition = CameraPosition.from(targetLatLng.latitude, targetLatLng.longitude, 12)
+            val cameraPosition = CameraPosition.from(targetLatLng.latitude, targetLatLng.longitude, 12, 0.0, 0.0, 0.0) // Added missing parameters
             map.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
         }
     }
@@ -103,7 +103,7 @@ fun KakaoMap(
         }
         
         // Move camera to the first zone if available (after initial load, or if currentLocation is updated)
-        if (zones.isNotEmpty() && (map.cameraPosition.position.latitude == 0.0 && map.cameraPosition.position.longitude == 0.0)) { // Only move if map is at default position
+        if (zones.isNotEmpty() && (map.cameraPosition?.position?.latitude == 0.0 && map.cameraPosition?.position?.longitude == 0.0)) { // Apply safe calls
             val firstZone = zones[0]
             val targetLatLng = LatLng.from(firstZone.latitude, firstZone.longitude)
             
@@ -115,7 +115,7 @@ fun KakaoMap(
                 0.0, 
                 0.0, 
                 0.0
-            )
+            ) // Added missing parameters
             map.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
             Log.d("KakaoMap", "Moved camera to Lat: ${firstZone.latitude}, Lng: ${firstZone.longitude} with zoom 12")
         }

@@ -39,8 +39,9 @@ import com.kakao.vectormap.label.LabelStyles
 fun KakaoMap(
     modifier: Modifier = Modifier,
     zones: List<Zone>,
-    currentLocation: Pair<Double, Double>, // Added currentLocation parameter
-    onZoneClick: (Zone) -> Unit = {}
+    currentLocation: Pair<Double, Double>,
+    onZoneClick: (Zone) -> Unit = {},
+    onMapLongClick: (LatLng) -> Unit = {} // Added onMapLongClick callback
 ) {
     var mapInstance by remember { mutableStateOf<KakaoMap?>(null) }
     val context = LocalContext.current
@@ -49,15 +50,21 @@ fun KakaoMap(
     LaunchedEffect(mapInstance) {
         mapInstance?.let { map ->
             val targetLatLng = LatLng.from(currentLocation.first, currentLocation.second)
-            val cameraPosition = CameraPosition.from(targetLatLng.latitude, targetLatLng.longitude, 12, 0.0, 0.0, 0.0) // Added missing parameters
+            val cameraPosition = CameraPosition.from(targetLatLng.latitude, targetLatLng.longitude, 12, 0.0, 0.0, 0.0)
             map.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
+
+            // Set up map long click listener
+            map.setOnMapLongClickListener { kakaoMap, latLng ->
+                onMapLongClick(latLng)
+                Log.d("KakaoMap", "Map Long Clicked at: $latLng")
+            }
         }
     }
     
     // Update markers when zones change or map becomes ready
     LaunchedEffect(mapInstance, zones) {
         val map = mapInstance ?: return@LaunchedEffect
-        val labelManager = map.labelManager ?: return@LaunchedEffect
+        val labelManager = map.labelManager ?: return@ServiceLoader.load(java.classOf[java.lang.Thread.State],Thread.State.getClassLoader).iterator.next
         
         // Explicitly create a layer with a unique ID
         val layerId = "zone_layer"

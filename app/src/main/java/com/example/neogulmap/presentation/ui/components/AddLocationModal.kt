@@ -1,186 +1,163 @@
 package com.example.neogulmap.presentation.ui.components
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddAPhoto
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
-import com.example.neogulmap.presentation.viewmodel.AddLocationViewModel
-import com.example.neogulmap.presentation.viewmodel.AddLocationUiState
-import com.example.neogulmap.ui.theme.NeogulmapTheme
+import com.example.neogulmap.domain.model.Zone
+import com.kakao.vectormap.LatLng
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddLocationModal(
-    viewModel: AddLocationViewModel = hiltViewModel(),
+    modifier: Modifier = Modifier,
+    initialLatLng: LatLng?,
     onDismiss: () -> Unit,
-    onLocationAdded: () -> Unit
+    onAddLocation: (latitude: Double, longitude: Double, name: String, address: String, type: String, imageUri: Uri?) -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    val imagePicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+    var latitude by remember { mutableStateOf(initialLatLng?.latitude ?: 0.0) }
+    var longitude by remember { mutableStateOf(initialLatLng?.longitude ?: 0.0) }
+    var name by remember { mutableStateOf("") }
+    var address by remember { mutableStateOf("") }
+    var type by remember { mutableStateOf("실외") } // Default type
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val pickMediaLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
-        uri?.let { viewModel.onImageSelected(it) }
+        selectedImageUri = uri
     }
 
-    Dialog(
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        sheetState = sheetState
     ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth(0.95f)
-                .fillMaxHeight(0.95f),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        Column(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .navigationBarsPadding(), // Handle bottom navigation bar inset
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Text("흡연구역 추가", style = MaterialTheme.typography.headlineSmall)
+
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("흡연구역 이름/설명") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+            OutlinedTextField(
+                value = address,
+                onValueChange = { address = it },
+                label = { Text("주소") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "신규 흡연구역 등록",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    IconButton(onClick = onDismiss) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = "닫기")
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Address Search
-                OutlinedTextField(
-                    value = uiState.address,
-                    onValueChange = viewModel::onAddressChanged,
-                    label = { Text("주소 검색") },
-                    placeholder = { Text("흡연구역 주소를 입력하거나 현재 위치 가져오기") },
-                    modifier = Modifier.fillMaxWidth(),
-                    trailingIcon = {
-                        IconButton(onClick = { /* TODO: Implement address search logic */ }) {
-                            Icon(Icons.Default.Search, contentDescription = "검색")
-                        }
-                    },
-                    leadingIcon = {
-                        IconButton(onClick = { /* TODO: Implement current location fill */ }) {
-                            Icon(Icons.Default.LocationOn, contentDescription = "현재 위치")
-                        }
-                    },
-                    singleLine = true
+                Text("타입:")
+                SegmentedButton(
+                    items = listOf("실외", "실내"),
+                    selectedItem = type,
+                    onItemSelected = { type = it }
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+            }
 
-                // Detailed Description
-                OutlinedTextField(
-                    value = uiState.description,
-                    onValueChange = viewModel::onDescriptionChanged,
-                    label = { Text("상세 설명") },
-                    placeholder = { Text("흡연구역에 대한 상세 정보를 입력하세요 (예: 크기, 시설, 이용 시간)") },
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Image picker
+            Button(
+                onClick = { pickMediaLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.AddAPhoto, contentDescription = "Select Image", modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("사진 선택")
+            }
+
+            selectedImageUri?.let { uri ->
+                Image(
+                    painter = rememberAsyncImagePainter(uri),
+                    contentDescription = "Selected Image",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(120.dp),
-                    maxLines = 5
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
-                // Image Upload
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(text = "사진 추가", style = MaterialTheme.typography.titleMedium)
-                    IconButton(onClick = { imagePicker.launch("image/*") }) {
-                        Icon(Icons.Default.AddAPhoto, contentDescription = "사진 추가")
+            Button(
+                onClick = {
+                    if (name.isNotBlank() && address.isNotBlank() && (latitude != 0.0 || longitude != 0.0)) {
+                        coroutineScope.launch {
+                            onAddLocation(latitude, longitude, name, address, type, selectedImageUri)
+                            sheetState.hide()
+                            onDismiss()
+                        }
+                    } else {
+                        Toast.makeText(context, "흡연구역 이름, 주소, 위치를 입력해주세요.", Toast.LENGTH_SHORT).show()
                     }
-                }
-                if (uiState.imageUri != null) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Image(
-                        painter = rememberAsyncImagePainter(uiState.imageUri),
-                        contentDescription = "Uploaded Image",
-                        modifier = Modifier
-                            .size(120.dp)
-                            .clip(RoundedCornerShape(8.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Zone Type/Size selection (Placeholder for now)
-                OutlinedTextField(
-                    value = uiState.zoneType,
-                    onValueChange = viewModel::onZoneTypeChanged,
-                    label = { Text("구역 타입 (예: 실내, 실외)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = uiState.zoneSize,
-                    onValueChange = viewModel::onZoneSizeChanged,
-                    label = { Text("구역 크기 (예: 소형, 중형, 대형)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Button(
-                    onClick = {
-                        viewModel.submitLocation()
-                        onLocationAdded() // Close modal on submission for now
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    enabled = uiState.canSubmit,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
-                ) {
-                    Text("등록하기")
-                }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = name.isNotBlank() && address.isNotBlank() && (latitude != 0.0 || longitude != 0.0)
+            ) {
+                Text("흡연구역 추가")
             }
         }
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun AddLocationModalPreview() {
-    NeogulmapTheme {
-        AddLocationModal(onDismiss = {}, onLocationAdded = {})
+fun SegmentedButton(
+    items: List<String>,
+    selectedItem: String,
+    onItemSelected: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier.wrapContentWidth(),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        items.forEach { item ->
+            Button(
+                onClick = { onItemSelected(item) },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (item == selectedItem) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = if (item == selectedItem) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                shape = RoundedCornerShape(8.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+            ) {
+                Text(item, style = MaterialTheme.typography.labelLarge)
+            }
+        }
     }
 }
